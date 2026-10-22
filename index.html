@@ -254,7 +254,7 @@ async function pushCloudData(){
    if(current?.updated_at&&current.updated_at!==lastCloudUpdatedAt&&current.updated_at!==lastCloudWriteAt){
     backupLocalSnapshot("sebelum konflik sinkronisasi");
     const useLocal=confirm("Ada perubahan lebih baru dari perangkat lain. OK = pertahankan data perangkat ini dan unggah untuk mengganti cloud. Cancel = muat data cloud terbaru (perubahan perangkat ini tersimpan di cadangan lokal). ");
-    if(!useLocal){db=normalizeDB(current.payload);localStorage.setItem(KEY,JSON.stringify(db));lastCloudUpdatedAt=current.updated_at;if(typeof render==="function")render();setSyncStatus("Data cloud terbaru dimuat");return;}
+    if(!useLocal){db=normalizeDB(current.payload);localStorage.setItem(KEY,JSON.stringify(db));lastCloudUpdatedAt=current.updated_at;if(typeof render==="function")render();setSyncStatus("Data cloud terbaru dimuat");return true;}
     lastCloudUpdatedAt=current.updated_at;
    }
   }
