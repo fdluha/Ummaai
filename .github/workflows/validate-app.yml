@@ -1,0 +1,51 @@
+name: Validate Ummaheh source
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "index.html"
+      - ".github/workflows/validate-app.yml"
+  push:
+    branches: [main]
+    paths:
+      - "index.html"
+      - ".github/workflows/validate-app.yml"
+
+jobs:
+  validate-inline-javascript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Parse inline JavaScript blocks
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1]).filter(s => s.trim());
+          if (!scripts.length) throw new Error('No inline JavaScript found.');
+          for (const [i, script] of scripts.entries()) {
+            try { new Function(script); }
+            catch (error) { console.error('Inline script #' + (i + 1) + ': ' + error.message); process.exitCode = 1; }
+          }
+          if (process.exitCode) process.exit(process.exitCode);
+          console.log('PASS: parsed ' + scripts.length + ' inline JavaScript block(s).');
+          NODE
+      - name: Check key integrity paths
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const checks = [
+            ['guarded save calls', (html.match(/if\\(!save\\(\\)\\)return;/g) || []).length >= 20],
+            ['paired transfer deletion sync', /async function delTx[\\s\\S]*?saveAndSyncNow\\(\\)/.test(html)],
+            ['backup import rollback', /const old=db;db=candidate;if\\(save\\(\\)\\)[\\s\\S]*?else\\{db=old;render\\(\\)\\}/.test(html)],
+            ['cloud sync conflict detection', html.includes('Ada perubahan lebih baru dari perangkat lain')]
+          ];
+          let failed = false;
+          for (const [name, ok] of checks) { console.log((ok ? 'PASS: ' : 'FAIL: ') + name); if (!ok) failed = true; }
+          if (failed) process.exit(1);
+          NODE
