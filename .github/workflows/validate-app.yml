@@ -50,3 +50,38 @@ jobs:
           for (const [name, ok] of checks) { console.log((ok ? 'PASS: ' : 'FAIL: ') + name); if (!ok) failed = true; }
           if (failed) process.exit(1);
           NODE
+      - name: Test transaction deletion behavior with mocks
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const assert = require('assert/strict');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const start = html.indexOf('async function delTx(i){');
+          const end = html.indexOf('async function editBank(i){', start);
+          if (start < 0 || end < 0) throw new Error('Could not isolate delTx() for tests');
+          const source = html.slice(start, end);
+          async function scenario(transactions, confirmed, expectedCount, expectedSyncs, expectedDelta) {
+            const state = { syncs: 0, deltas: [], messages: [] };
+            const context = {
+              db: { transactions },
+              appConfirm: async () => confirmed,
+              changeSavingBalance: (index, delta) => state.deltas.push([index, delta]),
+              saveAndSyncNow: async () => { state.syncs++; return true; },
+              toast: message => state.messages.push(message),
+              render: () => {}
+            };
+            vm.createContext(context);
+            vm.runInContext(source, context);
+            await context.delTx(0);
+            assert.equal(context.db.transactions.length, expectedCount, 'remaining transaction count');
+            assert.equal(state.syncs, expectedSyncs, 'sync count');
+            assert.equal(state.deltas.reduce((sum, item) => sum + item[1], 0), expectedDelta, 'saving balance reversal');
+          }
+          (async () => {
+            await scenario([{type:'expense',amount:10,accountKind:'bank',bankIndex:0}], true, 0, 1, 0);
+            await scenario([{type:'transfer_out',amount:50,accountKind:'saving',savingIndex:0,pairId:'p'},{type:'transfer_in',amount:50,accountKind:'bank',bankIndex:0,pairId:'p'}], true, 0, 1, 50);
+            await scenario([{type:'expense',amount:10,accountKind:'bank',bankIndex:0}], false, 1, 0, 0);
+            console.log('PASS: single delete, paired transfer delete with saving-balance reversal, and cancel behavior.');
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
