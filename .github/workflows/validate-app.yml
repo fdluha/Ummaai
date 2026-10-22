@@ -25,7 +25,7 @@ jobs:
           node <<'NODE'
           const fs = require('fs');
           const html = fs.readFileSync('index.html', 'utf8');
-          const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1]).filter(s => s.trim());
+          const scripts = html.split('<script').slice(1).map(part => part.slice(part.indexOf('>') + 1, part.indexOf('</script>'))).filter(source => source.trim());
           if (!scripts.length) throw new Error('No inline JavaScript found.');
           for (const [i, script] of scripts.entries()) {
             try { new Function(script); }
@@ -40,9 +40,9 @@ jobs:
           const fs = require('fs');
           const html = fs.readFileSync('index.html', 'utf8');
           const checks = [
-            ['guarded save calls', (html.match(/if\\(!save\\(\\)\\)return;/g) || []).length >= 20],
-            ['paired transfer deletion sync', /async function delTx[\\s\\S]*?saveAndSyncNow\\(\\)/.test(html)],
-            ['backup import rollback', /const old=db;db=candidate;if\\(save\\(\\)\\)[\\s\\S]*?else\\{db=old;render\\(\\)\\}/.test(html)],
+            ['guarded save calls', html.split('if(!save())return;').length - 1 >= 20],
+            ['paired transfer deletion sync', html.includes('async function delTx(i)') && html.includes('saveAndSyncNow()')],
+            ['backup import rollback', html.includes('const old=db;db=candidate;if(save())') && html.includes('else{db=old;render()}')],
             ['cloud sync conflict detection', html.includes('Ada perubahan lebih baru dari perangkat lain')]
           ];
           let failed = false;
