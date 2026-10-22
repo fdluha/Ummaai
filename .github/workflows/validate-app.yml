@@ -85,3 +85,50 @@ jobs:
             console.log('PASS: single delete, paired transfer delete with saving-balance reversal, and cancel behavior.');
           })().catch(error => { console.error(error); process.exit(1); });
           NODE
+      - name: Test cloud conflict resolution with mocked Supabase
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const vm = require('vm');
+          const assert = require('assert/strict');
+          const html = fs.readFileSync('index.html', 'utf8');
+          const start = html.indexOf('async function pushCloudData(){');
+          const end = html.indexOf('async function saveAndSyncNow(){', start);
+          if (start < 0 || end < 0) throw new Error('Could not isolate pushCloudData()');
+          const source = html.slice(start, end);
+          async function scenario(keepLocal) {
+            const state = { upserts: 0, local: null, statuses: [], messages: [] };
+            const remote = { payload: { version: 'cloud-new' }, updated_at: 'cloud-v2' };
+            const context = {
+              cloudReady: true, cloudUser: { id: 'user-1' }, cloudWriteInFlight: false, cloudNeedsPush: false,
+              lastCloudUpdatedAt: 'cloud-v1', lastCloudWriteAt: null,
+              db: { version: 'local' },
+              confirm: () => keepLocal,
+              backupLocalSnapshot: () => 'backup-created',
+              normalizeDB: value => JSON.parse(JSON.stringify(value)),
+              localStorage: { setItem: (key, value) => { state.local = JSON.parse(value); } },
+              KEY: 'test-key', render: () => {}, setSyncStatus: value => state.statuses.push(value),
+              toast: value => state.messages.push(value), clearTimeout: () => {}, setTimeout: () => 1,
+              supabaseClient: { from: () => ({ select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: remote, error: null }) }) }), upsert: async () => { state.upserts++; return { error: null }; } }) }
+            };
+            vm.createContext(context);
+            vm.runInContext(source, context);
+            const result = await context.pushCloudData();
+            if (keepLocal) {
+              assert.equal(state.upserts, 1, 'local choice uploads local version');
+              assert.equal(context.lastCloudUpdatedAt, 'cloud-v1', 'cloud timestamp should advance after upload');
+            } else {
+              assert.equal(state.upserts, 0, 'cloud choice must not overwrite cloud');
+              assert.equal(context.db.version, 'cloud-new', 'cloud choice replaces local in-memory data');
+              assert.equal(state.local.version, 'cloud-new', 'cloud choice persists remote data locally');
+              assert.equal(context.lastCloudUpdatedAt, 'cloud-v2', 'cloud choice remembers remote version');
+            }
+            assert.equal(result, true, 'resolved conflict reports success');
+            assert.equal(context.cloudWriteInFlight, false, 'write lock released');
+          }
+          (async () => {
+            await scenario(false);
+            await scenario(true);
+            console.log('PASS: choosing cloud preserves remote data; choosing local uploads local data; both release sync lock.');
+          })().catch(error => { console.error(error); process.exit(1); });
+          NODE
