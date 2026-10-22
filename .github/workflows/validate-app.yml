@@ -116,7 +116,7 @@ jobs:
             const result = await context.pushCloudData();
             if (keepLocal) {
               assert.equal(state.upserts, 1, 'local choice uploads local version');
-              assert.equal(context.lastCloudUpdatedAt, 'cloud-v1', 'cloud timestamp should advance after upload');
+              assert.notEqual(context.lastCloudUpdatedAt, 'cloud-v1', 'cloud timestamp advances after upload');
             } else {
               assert.equal(state.upserts, 0, 'cloud choice must not overwrite cloud');
               assert.equal(context.db.version, 'cloud-new', 'cloud choice replaces local in-memory data');
