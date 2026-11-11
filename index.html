@@ -460,6 +460,57 @@ body.is-overview #page .overview-clock .device-time{order:1;font-size:21px;line-
 }
 </style>
 
+
+<style id="ummaheh-dashboard-mockup-refine-2026-11-11">
+:root{--bg:#f6f3ed;--card:#fffdfa;--text:#29323b;--muted:#747d83;--primary:#668a78;--primary2:#456b5b;--soft:#edf2ed;--line:#e9e5de;--shadow:0 5px 18px rgba(54,64,57,.055)}
+body{background:var(--bg);color:var(--text)}
+body.is-overview .main{max-width:1080px}
+body.is-overview #page>.dashboard-welcome-row{border-bottom:0;padding-bottom:5px;margin-bottom:13px}
+body.is-overview #page .welcome{font-weight:800;letter-spacing:-.04em}
+body.is-overview #page .overview-notification-btn{border:0;background:#fffdfa;box-shadow:0 2px 9px rgba(54,64,57,.045)!important}
+body.is-overview .overview-wealth-card{background:linear-gradient(125deg,#789886 0%,#91a995 58%,#d8ddca 100%);border:0;color:#fff;box-shadow:0 8px 22px rgba(66,99,79,.15)}
+body.is-overview .overview-wealth-card .overview-period b,
+body.is-overview .overview-wealth-card .overview-wealth-total span,
+body.is-overview .overview-wealth-card .overview-wealth-total strong,
+body.is-overview .overview-wealth-card .overview-wealth-total small{color:#fff}
+body.is-overview .overview-wealth-card .balance-visibility-btn{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.35);color:#fff}
+body.is-overview .overview-wealth-card .overview-fund-item{background:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.6);color:#29323b;border-radius:15px}
+body.is-overview .overview-wealth-card .overview-fund-item small,
+body.is-overview .overview-wealth-card .overview-fund-item strong,
+body.is-overview .overview-wealth-card .overview-fund-item em{color:#35433e}
+body.is-overview .monthly-summary-card,
+body.is-overview .overview-allocation-card,
+body.is-overview .overview-savings-card,
+body.is-overview .overview-due-card,
+body.is-overview #page>.section.card:last-child{background:var(--card);border:1px solid #eee9e2;box-shadow:0 4px 15px rgba(48,57,51,.045)}
+.overview-allocation-content{display:grid;grid-template-columns:minmax(110px,.8fr) minmax(0,1.2fr);align-items:center;gap:18px;padding:4px 0}
+.overview-allocation-chart{width:min(100%,142px);aspect-ratio:1;border-radius:50%;background:var(--allocation-chart);display:grid;place-items:center;margin:auto;position:relative}
+.overview-allocation-chart:before{content:"";position:absolute;inset:23%;border-radius:50%;background:var(--card)}
+.overview-allocation-chart>div{position:relative;display:grid;text-align:center;gap:1px}
+.overview-allocation-chart b{font-size:19px;line-height:1.1}
+.overview-allocation-chart small{font-size:9px;color:var(--muted)}
+.overview-allocation-legend{display:grid;gap:12px;min-width:0}
+.overview-allocation-row{display:grid;grid-template-columns:10px minmax(0,1fr) auto;align-items:center;gap:8px;font-size:11px}
+.overview-allocation-row strong{font-size:11px;font-weight:750;white-space:nowrap}
+.overview-allocation-dot{width:9px;height:9px;border-radius:50%;background:var(--allocation-color)}
+.overview-allocation-foot{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:10px;margin-top:7px;font-size:10px;color:var(--muted)}
+.overview-allocation-foot b,.overview-allocation-obligations b{color:var(--text)}
+.overview-allocation-obligations{margin:9px 0 0;padding:8px 10px;border-radius:10px;background:#f7f1e7;color:#77684f;font-size:10px}
+.overview-allocation-setup{margin-top:10px}
+@media(max-width:600px){
+ body.is-overview .main{padding:15px 14px calc(96px + env(safe-area-inset-bottom))}
+ body.is-overview #page>.dashboard-welcome-row{margin-bottom:11px}
+ body.is-overview #page .welcome{font-size:21px}
+ body.is-overview .overview-wealth-card{padding:16px!important}
+ .overview-allocation-content{grid-template-columns:minmax(100px,.75fr) minmax(0,1.25fr);gap:10px}
+ .overview-allocation-chart{width:min(100%,124px)}
+ .overview-allocation-chart:before{inset:22%}
+ .overview-allocation-row{font-size:10px;gap:6px}
+ .overview-allocation-row strong{font-size:10px}
+ .overview-allocation-legend{gap:10px}
+}
+@media(max-width:360px){.overview-allocation-content{grid-template-columns:94px minmax(0,1fr);gap:8px}.overview-allocation-row{font-size:9px}.overview-allocation-row strong{font-size:9px}}
+</style>
 </head>
 <body>
 <div id="authOverlay" class="auth-overlay">
@@ -683,6 +734,18 @@ function activeSubscriptionPeriod(sub){const due=String(sub.due||"").slice(0,10)
 function selectedUnpaidBills(){const period=selectedBillPeriod();const debts=db.debts.filter(d=>!d.paid&&String(d.due||"").slice(0,7)===period).map(d=>({name:d.name,amount:Number(d.amount)||0}));const subs=db.subscriptions.filter(sub=>{const active=activeSubscriptionPeriod(sub);return !!active&&sub.paidPeriod!==active}).map(sub=>({name:sub.name,amount:Number(sub.amount)||0}));return debts.concat(subs)}
 function toggleBalanceVisibility(){showBalances=!showBalances;render()}
 function visibleMoney(amount){return showBalances?rupiah(amount):"••••••••"}
+function overviewAllocationCard(){
+ const p=allocationPlan(),obligations=allocationObligationsForPeriod();
+ const groups=[{key:"pokok",name:"Kebutuhan Pokok",color:"#719783"},{key:"pribadi",name:"Keinginan",color:"#d9bd91"},{key:"tabungan",name:"Tabungan",color:"#83a9c9"},{key:"cadangan",name:"Dana Cadangan",color:"#9b91b8"}];
+ const rows=groups.map(g=>{const items=p.items.filter(x=>x.group===g.key||String(x.expenseCategory||"")==="__group_"+g.key+"__");const amount=items.reduce((n,x)=>n+Math.max(0,Number(x.amount)||0),0);const spent=items.reduce((n,x)=>n+allocationSpent(x),0);return {...g,amount,spent,left:Math.max(0,amount-spent)}}).filter(x=>x.amount>0);
+ const total=rows.reduce((n,x)=>n+x.amount,0),spent=rows.reduce((n,x)=>n+x.spent,0),pct=total?Math.min(100,spent/total*100):0;
+ let cursor=0;const slices=rows.map(x=>{const start=cursor;cursor+=total?x.amount/total*100:0;return x.color+" "+start.toFixed(2)+"% "+cursor.toFixed(2)+"%"}).join(",");
+ const legend=rows.map(x=>'<div class="overview-allocation-row"><span class="overview-allocation-dot" style="--allocation-color:'+x.color+'"></span><span>'+escapeHTML(x.name)+'</span><strong>'+visibleMoney(x.amount)+'</strong></div>').join("");
+ return '<section class="section card overview-allocation-card"><div class="overview-section-heading"><div><h2>Alokasi Anggaran</h2><p class="subtitle">Pantau pembagian dan penggunaan dana.</p></div><button type="button" class="overview-text-link" onclick="navigateTo(\'allocation\')">Lihat detail ›</button></div>'+
+ (rows.length?'<div class="overview-allocation-content"><div class="overview-allocation-chart" role="img" aria-label="Anggaran terpakai '+Math.round(pct)+' persen" style="--allocation-chart:conic-gradient('+slices+')"><div><b>'+Math.round(pct)+'%</b><small>terpakai</small></div></div><div class="overview-allocation-legend">'+legend+'</div></div><div class="overview-allocation-foot"><span>Terpakai <b>'+visibleMoney(spent)+'</b></span><span>Sisa <b>'+visibleMoney(Math.max(0,total-spent))+'</b></span></div>':
+ '<div class="overview-empty-note">Belum ada pembagian anggaran tersimpan. Atur simulasi agar Ummaheh bisa memantau penggunaan uangmu.</div><button type="button" class="btn primary overview-allocation-setup" onclick="navigateTo(\'allocation\')">Atur alokasi</button>')+
+ (obligations.total>0?'<p class="overview-allocation-obligations">Kewajiban terjadwal: <b>'+visibleMoney(obligations.total)+'</b></p>':'')+'</section>';
+}
 function overview(){
  const mt=monthTx(),inc=mt.filter(x=>x.type==="income").reduce((a,x)=>a+Number(x.amount),0),exp=mt.filter(x=>x.type==="expense").reduce((a,x)=>a+Number(x.amount),0);
  const activeFunds=saldoBank()+saldoCash(),savingFunds=db.savings.reduce((sum,item,i)=>sum+savingBalance(i),0),allFunds=activeFunds+savingFunds;
@@ -700,7 +763,7 @@ function overview(){
  <div class="overview-fund-grid"><div class="overview-fund-item is-active"><span class="overview-fund-mark">↗</span><div><small>Dana Aktif</small><strong>${visibleMoney(activeFunds)}</strong><em>Rekening dan uang tunai</em></div></div><div class="overview-fund-item is-saving"><span class="overview-fund-mark">◎</span><div><small>Dana Tabungan</small><strong>${visibleMoney(savingFunds)}</strong><em>${db.savings.length} tujuan tabungan</em></div></div></div>
  <div class="overview-balance-grid"><div class="overview-balance-item overview-bank-balance"><span class="overview-balance-label">Di rekening</span><strong>${visibleMoney(saldoBank())}</strong></div><div class="overview-balance-item overview-cash-balance"><span class="overview-balance-label">Uang tunai</span><strong>${visibleMoney(saldoCash())}</strong></div></div></div>
  <div class="section card monthly-summary-card"><div class="monthly-summary-heading"><div><h2>Ringkasan ${months[dashboardMonth]} ${dashboardYear}</h2><p class="subtitle">Gambaran arus uang pada periode yang dipilih</p></div><div class="monthly-summary-controls"><select aria-label="Pilih bulan laporan" onchange="dashboardMonth=Number(this.value);render()">${months.map((m,i)=>`<option value="${i}" ${i===dashboardMonth?'selected':''}>${m}</option>`).join("")}</select><select aria-label="Pilih tahun laporan" onchange="dashboardYear=Number(this.value);render()">${years.map(y=>`<option value="${y}" ${y===dashboardYear?'selected':''}>${y}</option>`).join("")}</select></div></div><div class="monthly-summary-totals"><div class="monthly-summary-total"><span>Total pemasukan</span><strong class="income">${visibleMoney(inc)}</strong></div><div class="monthly-summary-total"><span>Total pengeluaran</span><strong class="expense">${visibleMoney(exp)}</strong></div></div><div class="monthly-summary-net"><div class="monthly-summary-net-label"><span>Sisa arus kas</span><strong class="${inc-exp>0?'income':inc-exp<0?'expense':''}">${visibleMoney(inc-exp)}</strong></div><div class="monthly-summary-status ${inc-exp>0?'is-positive':inc-exp<0?'is-negative':'is-balanced'}">${inc-exp>0?'Positif — pemasukan lebih besar daripada pengeluaran':inc-exp<0?'Negatif — pengeluaran lebih besar daripada pemasukan':'Seimbang — pemasukan sama dengan pengeluaran'}</div><div class="monthly-summary-ratio"><div class="monthly-summary-ratio-line"><span>Pengeluaran dari pemasukan</span><strong>${inc>0?(exp/inc*100).toLocaleString('id-ID',{maximumFractionDigits:1})+'%':exp>0?'—':'0%'}</strong></div><div class="monthly-summary-track"><div class="monthly-summary-track-fill ${exp>inc?'over-budget':''}" style="width:${inc>0?Math.min(100,exp/inc*100):0}%"></div></div><p>${inc>0?(exp<=inc?'Sisa '+(100-exp/inc*100).toLocaleString('id-ID',{maximumFractionDigits:1})+'% dari pemasukan belum terserap oleh pengeluaran tercatat.':'Pengeluaran melampaui pemasukan sebesar '+rupiah(exp-inc)+'.'):exp>0?'Belum ada pemasukan tercatat pada periode ini.':'Belum ada pemasukan atau pengeluaran pada periode ini.'}</p></div></div></div>
- <section class="section card overview-savings-card"><div class="overview-section-heading"><div><h2>Perkembangan Tabungan</h2><p class="subtitle">Pantau tujuan yang sedang kamu kumpulkan.</p></div><button type="button" class="overview-text-link" onclick="navigateTo('saving')">Lihat semua ›</button></div><div class="overview-saving-total"><strong>${db.savings.length} tujuan tabungan</strong><span>Progres keseluruhan</span></div><div class="overview-saving-track"><i style="width:${savingPct}%"></i></div><div class="overview-saving-foot"><span>${totalTarget>0?savingPct.toFixed(0)+'% dari target keseluruhan':'Atur target agar progres terlihat'}</span><span>${totalTarget>0?'Target '+visibleMoney(totalTarget):'Belum ada target'}</span></div>${goalRows?'<div class="overview-goal-list">'+goalRows+'</div>':'<div class="overview-empty-note">Belum ada tujuan tabungan. Tambahkan tujuan pertamamu untuk mulai memantau progres.</div>'}</section>
+ ${overviewAllocationCard()}<section class="section card overview-savings-card"><div class="overview-section-heading"><div><h2>Perkembangan Tabungan</h2><p class="subtitle">Pantau tujuan yang sedang kamu kumpulkan.</p></div><button type="button" class="overview-text-link" onclick="navigateTo('saving')">Lihat semua ›</button></div><div class="overview-saving-total"><strong>${db.savings.length} tujuan tabungan</strong><span>Progres keseluruhan</span></div><div class="overview-saving-track"><i style="width:${savingPct}%"></i></div><div class="overview-saving-foot"><span>${totalTarget>0?savingPct.toFixed(0)+'% dari target keseluruhan':'Atur target agar progres terlihat'}</span><span>${totalTarget>0?'Target '+visibleMoney(totalTarget):'Belum ada target'}</span></div>${goalRows?'<div class="overview-goal-list">'+goalRows+'</div>':'<div class="overview-empty-note">Belum ada tujuan tabungan. Tambahkan tujuan pertamamu untuk mulai memantau progres.</div>'}</section>
  <section class="section card overview-due-card"><div class="overview-section-heading"><div><h2>Perlu Diperhatikan</h2><p class="subtitle">Pengingat kewajiban yang mendekati jatuh tempo.</p></div><button type="button" class="overview-text-link" onclick="navigateTo('debt')">Kewajiban ›</button></div>${dueItems.length?'<div class="overview-due-list">'+duePreview+'</div><p class="overview-due-note">'+dueItems.length+' kewajiban perlu diperiksa dalam 2 hari ke depan.</p>':'<div class="overview-no-due"><span>✓</span><div><b>Tidak ada kewajiban mendesak</b><small>Belum ada tagihan atau langganan yang jatuh tempo dalam 2 hari ke depan.</small></div></div>'}</section>
  <div class="section card"><div class="transaction-history-heading"><h2>Transaksi Terbaru</h2><button type="button" class="btn" onclick="openAllTransactions()">Lihat Semua Transaksi ›</button></div>${recentTransactions()}</div>`
 }
