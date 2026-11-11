@@ -414,7 +414,53 @@ body.is-overview .refresh-btn{display:none!important}
 <style id="ummaheh-dashboard-layout-2026-11">
 .overview-section-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:13px}.overview-section-heading h2{margin:0 0 3px;font-size:16px}.overview-section-heading .subtitle{margin:0;font-size:11px;line-height:1.45}.overview-text-link{flex:0 0 auto;padding:6px 0;background:transparent;color:var(--primary);font-size:11px;font-weight:800;white-space:nowrap}.overview-savings-card,.overview-due-card{display:grid;gap:10px}.overview-saving-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.overview-saving-total strong{font-size:clamp(20px,4.5vw,26px);letter-spacing:-.035em}.overview-saving-total span,.overview-saving-foot{font-size:10px;color:var(--muted)}.overview-saving-track,.overview-goal-track{height:7px;overflow:hidden;border-radius:99px;background:var(--line)}.overview-saving-track i,.overview-goal-track i{display:block;height:100%;border-radius:99px;background:#7da891}.overview-saving-foot{display:flex;justify-content:space-between;gap:10px;line-height:1.4}.overview-goal-list{display:grid;gap:12px;margin-top:4px}.overview-goal-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:10px}.overview-goal-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:var(--soft);font-size:18px}.overview-goal-copy{display:grid;gap:4px;min-width:0}.overview-goal-copy b{font-size:12px}.overview-goal-copy small{font-size:10px;color:var(--muted);overflow-wrap:anywhere}.overview-goal-copy .overview-goal-track{height:5px}.overview-goal-row>strong{font-size:11px;color:var(--primary2);white-space:nowrap}.overview-empty-note{padding:12px;border-radius:12px;background:var(--soft);color:var(--muted);font-size:11px;line-height:1.5}.overview-due-list{display:grid;gap:0}.overview-due-row{display:grid;grid-template-columns:27px minmax(0,1fr) auto;align-items:center;gap:9px;padding:10px 0;border-bottom:1px solid var(--line)}.overview-due-row:last-child{border-bottom:0}.overview-due-mark{width:25px;height:25px;display:grid;place-items:center;border-radius:9px;background:#fbefec;color:#b86c55;font-weight:900;font-size:13px}.overview-due-copy{display:grid;gap:2px;min-width:0}.overview-due-copy b{font-size:12px;overflow-wrap:anywhere}.overview-due-copy small{font-size:10px;color:var(--muted)}.overview-due-row>strong{font-size:11px;white-space:nowrap}.overview-due-note{margin:0;padding-top:8px;border-top:1px solid var(--line);font-size:10px;color:var(--muted)}.overview-no-due{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;background:var(--soft)}.overview-no-due>span{width:27px;height:27px;display:grid;place-items:center;border-radius:50%;background:#e3eee7;color:#47785d;font-weight:900}.overview-no-due>div{display:grid;gap:2px}.overview-no-due b{font-size:11px}.overview-no-due small{font-size:10px;color:var(--muted);line-height:1.4}
 @media(max-width:600px){.overview-section-heading h2{font-size:15px}.overview-saving-total strong{font-size:21px}.overview-goal-row{grid-template-columns:31px minmax(0,1fr) auto;gap:8px}.overview-goal-icon{width:31px;height:31px}.overview-due-row>strong{font-size:10px}.overview-saving-foot{font-size:9px}}
-</style></head>
+</style>
+<style id="dashboard-header-refinement">
+/* Dashboard header: no brand artwork; a calm greeting and compact date/time */
+body.is-overview .app-topbar{min-height:34px;margin-bottom:12px;padding:0 2px;background:transparent;border:0;box-shadow:none}
+body.is-overview .app-topbar-label{display:none!important}
+body.is-overview .app-topbar .header-actions{margin-left:auto;gap:9px}
+body.is-overview .app-topbar .notification-btn{order:1}
+body.is-overview .app-topbar .settings-top{order:2}
+body.is-overview .app-topbar .refresh-btn{display:none!important}
+body.is-overview .mobile-brand{display:none!important}
+body.is-overview #page>.top{
+  align-items:center;gap:18px;margin:0 0 20px;padding:7px 2px 18px;
+  border-bottom:1px solid var(--line)
+}
+body.is-overview #page>.top>div:first-child{min-width:0}
+body.is-overview #page .welcome{
+  font-size:clamp(22px,2.2vw,28px);line-height:1.2;letter-spacing:-.045em;
+  font-weight:850;color:var(--text)
+}
+body.is-overview #page .top .subtitle{margin-top:7px;font-size:13px;line-height:1.5;color:var(--muted)}
+body.is-overview #page .overview-clock{
+  flex:0 0 auto;display:flex;flex-direction:column;align-items:flex-end;gap:3px;
+  min-width:116px;padding:9px 13px;border:1px solid var(--line);
+  border-radius:14px;background:var(--soft);text-align:right
+}
+body.is-overview #page .overview-clock .device-date{order:0;font-size:11px;line-height:1.35;font-weight:650;color:var(--muted)}
+body.is-overview #page .overview-clock .device-time{order:1;font-size:21px;line-height:1.1;font-weight:850;letter-spacing:-.04em;color:var(--primary2)}
+@media(max-width:600px){
+  body.is-overview .app-topbar{margin-bottom:10px}
+  body.is-overview .app-topbar .header-actions{gap:7px}
+  body.is-overview .app-topbar .header-icon-btn{width:35px;height:35px}
+  body.is-overview #page>.top{align-items:flex-start;gap:9px;margin-bottom:16px;padding:5px 1px 14px}
+  body.is-overview #page .welcome{font-size:21px;max-width:100%;line-height:1.25}
+  body.is-overview #page .top .subtitle{font-size:11px;max-width:230px;margin-top:5px}
+  body.is-overview #page .overview-clock{min-width:91px;padding:8px 9px;border-radius:12px;margin-top:1px}
+  body.is-overview #page .overview-clock .device-date{font-size:9px}
+  body.is-overview #page .overview-clock .device-time{font-size:17px}
+}
+@media(max-width:360px){
+  body.is-overview #page>.top{gap:6px}
+  body.is-overview #page .welcome{font-size:19px}
+  body.is-overview #page .overview-clock{min-width:82px;padding:7px}
+  body.is-overview #page .overview-clock .device-time{font-size:16px}
+}
+</style>
+
+</head>
 <body>
 <div id="authOverlay" class="auth-overlay">
  <div class="auth-card">
