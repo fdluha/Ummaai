@@ -955,24 +955,36 @@ function openCategorySettings(){current="settings";render();setTimeout(()=>{cons
 function allocationGroupGuide(){return `<details class="allocation-guide"><summary>Panduan kategori dari Ummaheh</summary><div class="allocation-guide-list"><details><summary><b>Kewajiban</b><small>Tagihan, cicilan, kontrakan, arisan, PayLater, dan asuransi.</small></summary><p>Komitmen yang perlu dibayar sesuai kesepakatan atau jatuh tempo.</p></details><details><summary><b>Kebutuhan pokok</b><small>Makan, belanja rumah, transportasi, bensin, dan kesehatan.</small></summary><p>Kebutuhan utama untuk menjalankan aktivitas sehari-hari.</p></details><details><summary><b>Tabungan & tujuan</b><small>Dana darurat, pendidikan, rumah, kendaraan, dan investasi.</small></summary><p>Uang yang disisihkan untuk tujuan masa depan, bukan belanja rutin.</p></details><details><summary><b>Keinginan & gaya hidup</b><small>Jajan, nongkrong, hiburan, hobi, dan rekreasi.</small></summary><p>Pengeluaran yang bisa dikurangi ketika kondisi keuangan sedang ketat.</p></details><details><summary><b>Dana cadangan</b><small>Perbaikan mendadak dan kebutuhan tak terduga.</small></summary><p>Siapkan secukupnya untuk hal yang belum bisa diprediksi.</p></details></div></details>`}
 function allocationObligationsForPeriod(){
  const range=allocationPeriodRange();let total=0,debtTotal=0,subscriptionTotal=0,items=[];
- // Tagihan/cicilan satu kali yang jatuh tempo pada periode alokasi.
- db.debts.forEach(d=>{const due=String(d.due||"");if(validISODate(due)&&due>=range.start&&due<=range.end){const amount=Math.max(0,Number(d.amount)||0);total+=amount;debtTotal+=amount;items.push({name:d.name,amount,type:"debt"})}});
- // Langganan berulang: hitung satu kali jika tanggal tagihnya jatuh dalam periode ini.
+ // Tagihan/cicilan hanya dihitung jika belum lunas dan jatuh tempo pada periode alokasi.
+ db.debts.forEach(d=>{
+  const due=String(d.due||"");
+  if(d.paid||!validISODate(due)||due<range.start||due>range.end)return;
+  const amount=Math.max(0,Number(d.amount)||0);if(!amount)return;
+  total+=amount;debtTotal+=amount;items.push({name:d.name,amount,type:"debt"});
+ });
+ // Langganan dihitung per kejadian dalam rentang alokasi, tetapi periode yang sudah dibayar dikecualikan.
  db.subscriptions.forEach(sub=>{
   const due=String(sub.due||"").slice(0,10);if(!validISODate(due))return;
-  const [baseY,baseM,baseD]=due.split("-").map(Number);let occurrence=null,key="";
+  const [baseY,baseM,baseD]=due.split("-").map(Number);
+  const start=new Date(range.start+"T00:00:00"),end=new Date(range.end+"T00:00:00"),baseDate=new Date(due+"T00:00:00");
+  const amount=Math.max(0,Number(sub.amount)||0);if(!amount)return;
   if(sub.period==="Tahunan"){
-   const candidate=new Date(range.start.slice(0,4)*1,baseM-1,Math.min(baseD,new Date(Number(range.start.slice(0,4)),baseM,0).getDate()));
-   if(candidate>=new Date(due+"T00:00:00")&&localISODate(candidate)>=range.start&&localISODate(candidate)<=range.end){occurrence=candidate;key=String(candidate.getFullYear())}
+   for(let year=start.getFullYear();year<=end.getFullYear();year++){
+    const candidate=new Date(year,baseM-1,Math.min(baseD,new Date(year,baseM,0).getDate()));
+    const key=String(year);
+    if(candidate<baseDate||candidate<start||candidate>end||sub.paidPeriod===key)continue;
+    total+=amount;subscriptionTotal+=amount;items.push({name:sub.name,amount,type:"subscription",due:localISODate(candidate)});
+   }
   }else{
-   const start=new Date(range.start+"T00:00:00"),end=new Date(range.end+"T00:00:00");
-   for(let y=start.getFullYear(),m=start.getMonth();y<end.getFullYear()||(y===end.getFullYear()&&m<=end.getMonth());){
-    const candidate=new Date(y,m,Math.min(baseD,new Date(y,m+1,0).getDate()));
-    if(candidate>=new Date(due+"T00:00:00")&&localISODate(candidate)>=range.start&&localISODate(candidate)<=range.end){occurrence=candidate;key=`${candidate.getFullYear()}-${String(candidate.getMonth()+1).padStart(2,"0")}`;break}
-    m++;if(m>11){m=0;y++}
+   for(let year=start.getFullYear(),month=start.getMonth();year<end.getFullYear()||(year===end.getFullYear()&&month<=end.getMonth());){
+    const candidate=new Date(year,month,Math.min(baseD,new Date(year,month+1,0).getDate()));
+    const key=`${candidate.getFullYear()}-${String(candidate.getMonth()+1).padStart(2,"0")}`;
+    if(candidate>=baseDate&&candidate>=start&&candidate<=end&&sub.paidPeriod!==key){
+     total+=amount;subscriptionTotal+=amount;items.push({name:sub.name,amount,type:"subscription",due:localISODate(candidate)});
+    }
+    month++;if(month>11){month=0;year++}
    }
   }
-  if(occurrence){const amount=Math.max(0,Number(sub.amount)||0);total+=amount;subscriptionTotal+=amount;items.push({name:sub.name,amount,type:"subscription"})}
  });
  return {total,debtTotal,subscriptionTotal,items};
 }
