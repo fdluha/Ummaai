@@ -694,7 +694,7 @@ function overview(){
  const hour=new Date().getHours(),greeting=hour<11?"Selamat pagi":hour<15?"Selamat siang":hour<18?"Selamat sore":"Selamat malam";
  const duePreview=dueItems.slice(0,3).map(item=>{const when=item.diff===0?"Hari ini":item.diff===1?"Besok":"2 hari lagi";return `<div class="overview-due-row"><span class="overview-due-mark">!</span><span class="overview-due-copy"><b>${escapeHTML(item.name)}</b><small>${escapeHTML(item.kind)} · ${when}</small></span><strong>${visibleMoney(item.amount)}</strong></div>`}).join("");
  const goalRows=goalPreview.map(goal=>`<div class="overview-goal-row"><span class="overview-goal-icon">${escapeHTML(goal.icon)}</span><span class="overview-goal-copy"><b>${escapeHTML(goal.name)}</b><small>${goal.target>0?visibleMoney(goal.balance)+" / "+visibleMoney(goal.target):visibleMoney(goal.balance)+" · Target belum diatur"}</small><span class="overview-goal-track"><i style="width:${goal.pct}%"></i></span></span><strong>${goal.target>0?goal.pct.toFixed(0)+"%":"—"}</strong></div>`).join("");
- return `<div class="top"><div><div class="welcome">${greeting}, ${escapeHTML(db.profile.name||"Umma")} 👋</div><div class="subtitle">Berikut ringkasan keuanganmu hari ini.</div></div><div class="header-clock overview-clock" aria-label="Tanggal dan waktu perangkat"><b class="device-time">--:--</b><span class="device-date">Memuat tanggal…</span></div></div>
+ return `<div class="top dashboard-welcome-row"><div class="dashboard-welcome-copy"><div class="welcome">${greeting}, ${escapeHTML(db.profile.name||"Umma")} 👋</div><div class="overview-datetime" aria-label="Tanggal dan waktu perangkat"><span class="device-date">Memuat tanggal…</span><span class="datetime-separator">·</span><b class="device-time">--:--</b></div><div class="subtitle">Berikut ringkasan keuanganmu hari ini.</div></div><button type="button" class="header-icon-btn notification-btn overview-notification-btn" onclick="showDueNotifications()" aria-label="Notifikasi tagihan" title="Notifikasi tagihan"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span class="notification-dot" hidden></span></button></div>
  <div class="card overview-balance-card overview-balance-clean overview-wealth-card"><div class="overview-period"><b>Ringkasan seluruh dana</b><div class="overview-period-selects"><select aria-label="Pilih bulan laporan" onchange="dashboardMonth=Number(this.value);render()">${months.map((m,i)=>`<option value="${i}" ${i===dashboardMonth?'selected':''}>${m}</option>`).join("")}</select><select aria-label="Pilih tahun laporan" onchange="dashboardYear=Number(this.value);render()">${years.map(y=>`<option value="${y}" ${y===dashboardYear?'selected':''}>${y}</option>`).join("")}</select><button type="button" class="balance-visibility-btn" onclick="toggleBalanceVisibility()" aria-label="${showBalances?'Sembunyikan nominal saldo':'Tampilkan nominal saldo'}" title="${showBalances?'Sembunyikan saldo':'Tampilkan saldo'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>${showBalances?'<circle cx="12" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/>':'<path d="M3 3 21 21" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'}</svg></button></div></div>
  <div class="overview-wealth-total"><div><span>Total seluruh dana</span><strong>${visibleMoney(allFunds)}</strong><small>Dana aktif + dana tabungan, tanpa menghitung perpindahan sebagai pemasukan baru.</small></div></div>
  <div class="overview-fund-grid"><div class="overview-fund-item is-active"><span class="overview-fund-mark">↗</span><div><small>Dana Aktif</small><strong>${visibleMoney(activeFunds)}</strong><em>Rekening dan uang tunai</em></div></div><div class="overview-fund-item is-saving"><span class="overview-fund-mark">◎</span><div><small>Dana Tabungan</small><strong>${visibleMoney(savingFunds)}</strong><em>${db.savings.length} tujuan tabungan</em></div></div></div>
@@ -1385,6 +1385,30 @@ body{background:var(--bg);color:var(--text)}
 @media(max-width:360px){.saving-section-heading{flex-direction:column}.saving-section-heading .saving-add-wide{width:100%}.overview-fund-item{display:grid;grid-template-columns:24px minmax(0,1fr)}}
 </style>
 
+
+<style id="dashboard-header-left-datetime">
+/* Dashboard: sapaan, tanggal, dan jam sejajar di kiri; notifikasi di kanan */
+body.is-overview .app-topbar .notification-btn{display:none!important}
+body.is-overview #page>.dashboard-welcome-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 0 20px;padding:7px 2px 18px;border-bottom:1px solid var(--line)}
+body.is-overview #page>.dashboard-welcome-row>.dashboard-welcome-copy{display:flex;flex:1 1 auto;min-width:0;flex-direction:column;align-items:flex-start}
+body.is-overview #page .dashboard-welcome-row .welcome{font-size:clamp(22px,2.2vw,28px);line-height:1.2;letter-spacing:-.045em;font-weight:850;color:var(--text)}
+body.is-overview #page .overview-datetime{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:7px;color:var(--muted);font-size:12px;line-height:1.4;text-align:left}
+body.is-overview #page .overview-datetime .device-date{font-weight:650}
+body.is-overview #page .overview-datetime .datetime-separator{opacity:.65}
+body.is-overview #page .overview-datetime .device-time{font-size:12px;font-weight:750;letter-spacing:.01em;color:var(--primary2);font-variant-numeric:tabular-nums}
+body.is-overview #page .dashboard-welcome-row .subtitle{margin-top:5px;font-size:11px;line-height:1.45;color:var(--muted)}
+body.is-overview #page .overview-notification-btn{display:inline-flex;flex:0 0 39px;align-items:center;justify-content:center;width:39px;height:39px;margin-top:1px;padding:0;border:1px solid var(--line);border-radius:12px;background:transparent;color:var(--primary2);box-shadow:none!important;transform:none!important}
+body.is-overview #page .overview-notification-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+body.is-overview #page .overview-notification-btn .notification-dot{top:2px;right:2px}
+@media(max-width:600px){
+ body.is-overview #page>.dashboard-welcome-row{align-items:flex-start;gap:10px;margin-bottom:16px;padding:5px 1px 14px}
+ body.is-overview #page .dashboard-welcome-row .welcome{font-size:21px;max-width:100%;line-height:1.25}
+ body.is-overview #page .overview-datetime{gap:5px;margin-top:6px;font-size:10px}
+ body.is-overview #page .overview-datetime .device-time{font-size:11px}
+ body.is-overview #page .overview-notification-btn{width:35px;height:35px;flex-basis:35px;border-radius:11px}
+}
+@media(max-width:360px){body.is-overview #page .dashboard-welcome-row .welcome{font-size:19px}}
+</style>
 </body>
 
 <style id="ummaheh-final-polish-2026">
