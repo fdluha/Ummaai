@@ -1305,18 +1305,26 @@ function allocationPage(){
  }).join("");
  const periodLabel=budgetCycleLabel(range),cycleStatus=daysRemaining===0?"Berakhir hari ini":daysRemaining+" hari tersisa";
  return '<div class="top"><div><div class="welcome">Alokasi Uang</div><div class="subtitle">Atur pembagian penghasilan, pantau pemakaian, dan tinjau sisa dana dalam satu halaman.</div></div></div>'+
+ '<div class="allocation-detail-toolbar"><span>Ringkasan dan pemantauan tetap terlihat.</span><button type="button" class="btn allocation-toggle-all" onclick="toggleAllocationDetails(this)">Buka Semua</button></div>'+
  '<div class="card allocation-active-cycle"><div><small>SIKLUS ANGGARAN AKTIF</small><b>'+budgetCycleLabel(activeRange)+'</b><span>'+(activeRange.mode==="paycycle"?"Mengikuti tanggal gajian "+(Number(db.allocationSettings?.payDay)||25):"Mengikuti kalender bulanan")+'</span></div><strong>'+cycleStatus+'</strong></div>'+
- '<div class="card allocation-cycle-settings"><div class="allocation-cycle-settings-title"><b>Pengaturan siklus</b><small>Tentukan awal periode berdasarkan kalender atau tanggal gajian.</small></div>'+budgetCycleSettingsCard()+'</div>'+
+ '<details class="allocation-fold"><summary><span><b>Pengaturan siklus</b><small>Atur periode berdasarkan kalender atau tanggal gajian.</small></span><i>⌄</i></summary><div class="allocation-fold-body"><div class="card allocation-cycle-settings"><div class="allocation-cycle-settings-title"><b>Pengaturan siklus</b><small>Tentukan awal periode berdasarkan kalender atau tanggal gajian.</small></div>'+budgetCycleSettingsCard()+'</div></div></details>'+
  allocationCloseoutCard()+
- '<div class="card allocation-period"><div class="allocation-period-top"><div><b>Periode yang dilihat</b><small>'+periodLabel+'</small></div></div><div class="allocation-period-controls"><select aria-label="Bulan periode" onchange="allocationMonth=Number(this.value);render()">'+months.map((m,i)=>'<option value="'+i+'" '+(allocationMonth===i?"selected":"")+'>'+m+'</option>').join("")+'</select><select aria-label="Tahun periode" onchange="allocationYear=Number(this.value);render()">'+Array.from({length:7},(_,i)=>new Date().getFullYear()-2+i).map(y=>'<option value="'+y+'" '+(allocationYear===y?"selected":"")+'>'+y+'</option>').join("")+'</select></div>'+
- '<div class="field allocation-salary-field"><label>GAJI UTAMA (RP)</label><input id="allocationSalary" class="money-input" inputmode="numeric" value="'+formatMoneyValue(p.salary)+'" placeholder="Contoh: 5.000.000" oninput="updateAllocationSimulation(this.value)"></div><div class="allocation-extra-income"><span>Pendapatan tambahan tercatat</span><b>'+rupiah(extra)+'</b><small>'+rupiah(extraTx)+' dari transaksi tambahan. Pendapatan ini tetap berada di dana belum dialokasikan sampai kamu mengaturnya.</small></div></div>'+
- '<div class="card allocation-simulator"><div class="allocation-simulator-head"><div><b>Simulasi pembagian penghasilan</b><small>Ummaheh menghitung kewajiban, lalu menyarankan pembagian yang bisa kamu ubah.</small></div><span class="allocation-spark">✦</span></div><div id="allocationSimulationResult">'+allocationSimulationRows(p.salary)+'</div><button class="btn primary allocation-save-simulation" type="button" onclick="saveAllocationSimulation()">Simpan pembagian ini</button></div>'+
+ '<details class="allocation-fold"><summary><span><b>Periode & penghasilan</b><small>'+periodLabel+' · Atur periode dan gaji utama</small></span><i>⌄</i></summary><div class="allocation-fold-body"><div class="card allocation-period"><div class="allocation-period-top"><div><b>Periode yang dilihat</b><small>'+periodLabel+'</small></div></div><div class="allocation-period-controls"><select aria-label="Bulan periode" onchange="allocationMonth=Number(this.value);render()">'+months.map((m,i)=>'<option value="'+i+'" '+(allocationMonth===i?"selected":"")+'>'+m+'</option>').join("")+'</select><select aria-label="Tahun periode" onchange="allocationYear=Number(this.value);render()">'+Array.from({length:7},(_,i)=>new Date().getFullYear()-2+i).map(y=>'<option value="'+y+'" '+(allocationYear===y?"selected":"")+'>'+y+'</option>').join("")+'</select></div>'+
+ '<div class="field allocation-salary-field"><label>GAJI UTAMA (RP)</label><input id="allocationSalary" class="money-input" inputmode="numeric" value="'+formatMoneyValue(p.salary)+'" placeholder="Contoh: 5.000.000" oninput="updateAllocationSimulation(this.value)"></div><div class="allocation-extra-income"><span>Pendapatan tambahan tercatat</span><b>'+rupiah(extra)+'</b><small>'+rupiah(extraTx)+' dari transaksi tambahan. Pendapatan ini tetap berada di dana belum dialokasikan sampai kamu mengaturnya.</small></div></div></details>'+
+ '<details class="allocation-fold"><summary><span><b>Simulasi pembagian</b><small>Atur dan simpan rekomendasi pembagian penghasilan.</small></span><i>⌄</i></summary><div class="allocation-fold-body"><div class="card allocation-simulator"><div class="allocation-simulator-head"><div><b>Simulasi pembagian penghasilan</b><small>Ummaheh menghitung kewajiban, lalu menyarankan pembagian yang bisa kamu ubah.</small></div><span class="allocation-spark">✦</span></div><div id="allocationSimulationResult">'+allocationSimulationRows(p.salary)+'</div><button class="btn primary allocation-save-simulation" type="button" onclick="saveAllocationSimulation()">Simpan pembagian ini</button></div></div></details>'+
  '<div class="allocation-summary-grid allocation-summary-grid-four"><div class="card allocation-summary"><small>Total alokasi</small><strong>'+rupiah(total)+'</strong></div><div class="card allocation-summary"><small>Terpakai</small><strong>'+rupiah(spentAll)+'</strong></div><div class="card allocation-summary"><small>Sisa alokasi</small><strong>'+rupiah(remaining)+'</strong></div><div class="card allocation-summary"><small>Belum dialokasikan</small><strong>'+rupiah(unallocated)+'</strong></div></div>'+
- '<div class="allocation-summary-grid allocation-summary-grid-four"><div class="card allocation-summary"><small>Penghasilan utama + tambahan</small><strong>'+rupiah(income)+'</strong></div><div class="card allocation-summary"><small>Kewajiban terjadwal</small><strong>'+rupiah(obligations.total)+'</strong></div><div class="card allocation-summary"><small>Dana yang dapat direncanakan</small><strong>'+rupiah(planable)+'</strong></div><div class="card allocation-summary"><small>Kelompok dipantau</small><strong>'+p.items.filter(x=>String(x.expenseCategory||"").startsWith("__group_")).length+'</strong></div></div>'+
- allocationHealthSummary(p)+
+ '<details class="allocation-fold"><summary><span><b>Rincian perhitungan</b><small>Penghasilan, kewajiban, dana rencana, dan kondisi anggaran.</small></span><i>⌄</i></summary><div class="allocation-fold-body"><div class="allocation-summary-grid allocation-summary-grid-four"><div class="card allocation-summary"><small>Penghasilan utama + tambahan</small><strong>'+rupiah(income)+'</strong></div><div class="card allocation-summary"><small>Kewajiban terjadwal</small><strong>'+rupiah(obligations.total)+'</strong></div><div class="card allocation-summary"><small>Dana yang dapat direncanakan</small><strong>'+rupiah(planable)+'</strong></div><div class="card allocation-summary"><small>Kelompok dipantau</small><strong>'+p.items.filter(x=>String(x.expenseCategory||"").startsWith("__group_")).length+'</strong></div></div>'+
+ allocationHealthSummary(p)+'</div></details>'+
  '<div class="card allocation-list-card"><div class="allocation-list-heading"><div><h2>Pemantauan pembagian</h2><p class="subtitle">Pengeluaran dan setoran tabungan akan mengurangi kelompok yang sesuai secara otomatis.</p></div>'+(rows?'<button type="button" class="btn allocation-edit-shortcut" onclick="focusAllocationEditor()">Ubah alokasi</button>':"")+'</div>'+(rows||'<div class="empty">Belum ada pembagian tersimpan. Atur nominal pada simulasi, lalu tekan “Simpan pembagian ini”.</div>')+'</div>'+
- '<div class="card allocation-review"><b>Evaluasi periode</b><div class="allocation-review-grid"><div><small>Total pengeluaran terhubung</small><strong>'+rupiah(spentAll)+'</strong></div><div><small>Kelompok melewati batas</small><strong>'+p.items.filter(x=>allocationSpent(x)>Number(x.amount||0)).length+'</strong></div><div><small>Kelompok masih aman</small><strong>'+p.items.filter(x=>allocationSpent(x)<=Number(x.amount||0)).length+'</strong></div></div><p>Angka diperbarui otomatis saat transaksi ditambah, diedit, atau dihapus.</p></div>'+
- allocationHistorySection();
+ '<details class="allocation-fold"><summary><span><b>Evaluasi periode</b><small>Ringkasan batas dan pengeluaran yang terhubung.</small></span><i>⌄</i></summary><div class="allocation-fold-body"><div class="card allocation-review"><b>Evaluasi periode</b><div class="allocation-review-grid"><div><small>Total pengeluaran terhubung</small><strong>'+rupiah(spentAll)+'</strong></div><div><small>Kelompok melewati batas</small><strong>'+p.items.filter(x=>allocationSpent(x)>Number(x.amount||0)).length+'</strong></div><div><small>Kelompok masih aman</small><strong>'+p.items.filter(x=>allocationSpent(x)<=Number(x.amount||0)).length+'</strong></div></div><p>Angka diperbarui otomatis saat transaksi ditambah, diedit, atau dihapus.</p></div></div></details>'+
+ '<details class="allocation-fold"><summary><span><b>Riwayat alokasi</b><small>Keputusan sisa dana dari periode sebelumnya.</small></span><i>⌄</i></summary><div class="allocation-fold-body">'+allocationHistorySection()+'</div></details>';
+}
+function toggleAllocationDetails(button){
+ const details=[...document.querySelectorAll("#page .allocation-fold, #page .allocation-history-entry")];
+ if(!details.length)return;
+ const openAll=!details.every(item=>item.open);
+ details.forEach(item=>{item.open=openAll});
+ if(button)button.textContent=openAll?"Tutup Semua":"Buka Semua";
 }
 function focusAllocationEditor(){
  const target=document.querySelector(".allocation-simulator");
@@ -2498,5 +2506,26 @@ body.is-overview .overview-allocation-row strong{white-space:nowrap;font-size:13
  .allocation-history-entry{padding:10px}
  .allocation-summary-grid-four{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+
+/* Alokasi Uang: tampilan ringkas dengan rincian yang dapat dibuka */
+.allocation-detail-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:0 2px}
+.allocation-detail-toolbar>span{font-size:11px;color:var(--muted);line-height:1.4}
+.allocation-toggle-all{flex:0 0 auto;min-height:34px;padding:7px 12px;font-size:11px;white-space:nowrap}
+.allocation-fold{margin:0 0 11px;border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.allocation-fold>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px;padding:12px 14px;cursor:pointer;list-style:none}
+.allocation-fold>summary::-webkit-details-marker{display:none}
+.allocation-fold>summary>span{display:grid;gap:3px;min-width:0}
+.allocation-fold>summary b{font-size:13px;color:var(--text)}
+.allocation-fold>summary small{font-size:10px;line-height:1.4;color:var(--muted);font-weight:500}
+.allocation-fold>summary>i{font-style:normal;color:var(--muted);font-size:17px;transition:transform .18s ease}
+.allocation-fold[open]>summary{border-bottom:1px solid var(--line)}
+.allocation-fold[open]>summary>i{transform:rotate(180deg)}
+.allocation-fold-body{padding:12px}
+.allocation-fold-body>.card{margin:0}
+.allocation-fold-body>.allocation-summary-grid{margin-top:0}
+.allocation-fold-body>.allocation-summary-grid+.allocation-summary-grid{margin-top:10px}
+.allocation-fold-body>.allocation-health{margin-top:10px}
+@media(max-width:520px){.allocation-detail-toolbar{align-items:flex-start}.allocation-detail-toolbar>span{max-width:62%}.allocation-fold>summary{min-height:50px;padding:11px 12px}.allocation-fold-body{padding:10px}}
 
 </style>
