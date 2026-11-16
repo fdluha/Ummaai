@@ -2844,5 +2844,43 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 }
 </style>
 
+
+<style id="ummaheh-total-balance-card-colors">
+/* Samakan warna kartu total dana Dompet dan Tabungan dengan kartu saldo di Beranda */
+.wallet-total-panel{
+  background:color-mix(in srgb,#4b8ce8 12%,var(--card))!important;
+  color:#2864b5!important;
+  border:1px solid color-mix(in srgb,#4b8ce8 25%,var(--line));
+  box-shadow:none!important;
+}
+.wallet-total-panel:after{
+  border-color:rgba(57,119,206,.14);
+  box-shadow:0 0 0 22px rgba(57,119,206,.035),0 0 0 46px rgba(57,119,206,.025);
+}
+.wallet-total-icon{background:rgba(57,119,206,.10);color:#3977ce}
+.wallet-total-caption,.wallet-total-bottom{color:#3977ce!important}
+.wallet-total-eye{
+  background:rgba(57,119,206,.10)!important;
+  border-color:rgba(57,119,206,.18)!important;
+  color:#2864b5!important;
+}
+.wallet-total-bottom{border-top-color:rgba(57,119,206,.18)}
+.saving-total-card-rich{
+  background:color-mix(in srgb,#e7ad35 13%,var(--card))!important;
+  border-color:color-mix(in srgb,#e7ad35 28%,var(--line))!important;
+  box-shadow:none!important;
+}
+.saving-total-main>span,.saving-overall-progress-head{color:#a77713!important}
+.saving-total-main>strong,.saving-overall-progress-head b{color:#96650a!important}
+.saving-total-main>small{color:#9b813e!important}
+.saving-total-card-rich .saving-visibility-icon{
+  background:rgba(231,173,53,.13)!important;
+  border-color:rgba(167,119,19,.22)!important;
+  color:#96650a!important;
+}
+.saving-overall-track{background:rgba(167,119,19,.16)!important}
+.saving-overall-track span{background:linear-gradient(90deg,#d9a52e,#edc96d)!important}
+</style>
+
 </body>
 </html>
