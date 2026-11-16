@@ -142,6 +142,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 
 
 
+.notification-section{margin:12px 0 18px}.notification-section h4{font-size:13px;margin:0 0 7px;color:var(--primary2)}.notification-section .row{gap:12px}.notification-section .row>div{min-width:0}.notification-section .row small{line-height:1.45}.notification-section .row>b{white-space:nowrap;font-size:12px}
 /* Beranda refinement: saldo jadi fokus utama, periode lebih ringkas */
 .overview-balance-card{padding:clamp(14px,2vw,22px);overflow:hidden}
 .overview-period{flex-direction:row;align-items:center;justify-content:flex-end;gap:10px;padding:0 0 12px;border-bottom:1px solid var(--line)}
@@ -896,7 +897,7 @@ function overview(){
  let years=[];let firstYear=Math.min(dashboardYear,...db.transactions.map(x=>Number(String(x.date||"").slice(0,4))||dashboardYear),new Date().getFullYear());for(let y=firstYear;y<=Math.max(new Date().getFullYear(),dashboardYear)+2;y++)years.push(y);
  const months=["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
  const hour=new Date().getHours(),greeting=hour<11?"Selamat pagi":hour<15?"Selamat siang":hour<18?"Selamat sore":"Selamat malam";
- const duePreview=dueItems.slice(0,2).map(item=>{const when=item.diff===0?"Hari ini":item.diff===1?"Besok":"2 hari lagi";return `<div class="overview-due-row"><span class="overview-due-mark">!</span><span class="overview-due-copy"><b>${escapeHTML(item.name)}</b><small>${escapeHTML(item.kind)} · ${when}</small></span><strong>${visibleMoney(item.amount)}</strong></div>`}).join("");
+ const duePreview=dueItems.slice(0,2).map(item=>{const when=item.diff<0?`Terlambat ${Math.abs(item.diff)} hari`:item.diff===0?"Hari ini":item.diff===1?"Besok":`${item.diff} hari lagi`;return `<div class="overview-due-row"><span class="overview-due-mark">!</span><span class="overview-due-copy"><b>${escapeHTML(item.name)}</b><small>${escapeHTML(item.kind)} · ${when}</small></span><strong>${visibleMoney(item.amount)}</strong></div>`}).join("");
  const goalRows=goalPreview.map(goal=>`<div class="overview-goal-row"><span class="overview-goal-icon">${savingIconMarkup(goal.icon)}</span><span class="overview-goal-copy"><b>${escapeHTML(goal.name)}</b><small>Target: ${goal.target>0?visibleMoney(goal.target):"Belum diatur"}</small><span class="overview-goal-track"><i style="width:${goal.pct}%"></i></span><small>Sisa: ${visibleMoney(Math.max(0,goal.target-goal.balance))}</small></span><strong>${goal.target>0?goal.pct.toFixed(0)+"%":"—"}</strong></div>`).join("");
  const selectedPeriod=`${dashboardYear}-${String(dashboardMonth+1).padStart(2,"0")}`;const dashboardRange=budgetCycleRange(allocationMode(),Number(db.allocationSettings?.payDay)||25,dashboardMonth,dashboardYear);const dashboardRangeLabel=budgetCycleLabel(dashboardRange);
  return `<div class="umma-dashboard">
@@ -905,7 +906,7 @@ function overview(){
  <section class="umma-card umma-month-card"><div class="umma-card-heading"><h2><span class="umma-heading-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="14" width="4" height="7" rx="1.2"/><rect x="10" y="9" width="4" height="12" rx="1.2"/><rect x="17" y="3" width="4" height="18" rx="1.2"/></svg></span>Ringkasan Periode</h2><select aria-label="Pilih bulan dan tahun" class="umma-period-select" onchange="dashboardYear=Number(this.value.split('-')[0]);dashboardMonth=Number(this.value.split('-')[1])-1;render()">${years.flatMap(y=>months.map((m,i)=>`<option value="${y}-${String(i+1).padStart(2,"0")}" ${selectedPeriod===`${y}-${String(i+1).padStart(2,"0")}`?"selected":""}>${m} ${y}</option>`)).join("")}</select></div><p class="umma-cycle-caption">${dashboardRangeLabel} · ${allocationMode()==="paycycle"?"Siklus gajian (bulan awal periode)":"Periode kalender"}</p><div class="umma-month-totals"><div class="umma-month-total"><span class="umma-round-icon income">↑</span><div><small>Pemasukan</small><b class="income">${visibleMoney(inc)}</b></div></div><div class="umma-month-total"><span class="umma-round-icon expense">↓</span><div><small>Pengeluaran</small><b class="expense">${visibleMoney(exp)}</b></div></div></div><div class="umma-month-track"><i style="width:${inc>0?Math.min(100,exp/inc*100):0}%"></i></div><p class="umma-month-foot"><span>✓</span>Sisa Periode Ini: <b>${visibleMoney(inc-exp)}</b><span class="umma-dot-sep">•</span>Pengeluaran ${inc>0?Math.round(exp/inc*100):0}% dari pemasukan</p></section>
  ${overviewAllocationCard()}
  <section class="umma-card umma-savings-card"><div class="umma-card-heading"><h2><span class="umma-heading-icon pig">${savingPiggySvg("umma-piggy-svg")}</span>Perkembangan Tabungan</h2><button class="umma-link" onclick="navigateTo('saving')">Lihat Semua ›</button></div>${goalRows?`<div class="umma-goal-list">${goalRows}</div>`:`<div class="overview-empty-note">Belum ada tujuan tabungan. Tambahkan tujuan untuk mulai memantau progres.</div>`}</section>
- <section class="umma-due-card"><span class="umma-due-bell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg></span><div><b>Perlu Diperhatikan</b><p>${dueItems.length?escapeHTML(dueItems[0].name)+" jatuh tempo "+(dueItems[0].diff===0?"hari ini":dueItems[0].diff===1?"besok":"dalam 2 hari"):"Tidak ada tagihan mendesak saat ini"}</p></div><button onclick="showDueNotifications()">Lihat Detail →</button></section>
+ <section class="umma-due-card"><span class="umma-due-bell"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9Z"/><path d="M10 21h4"/></svg></span><div><b>Perlu Diperhatikan</b><p>${dueItems.length?escapeHTML(dueItems[0].name)+" jatuh tempo "+(dueItems[0].diff<0?"terlambat "+Math.abs(dueItems[0].diff)+" hari":dueItems[0].diff===0?"hari ini":dueItems[0].diff===1?"besok":"dalam "+dueItems[0].diff+" hari"):"Tidak ada tagihan mendesak saat ini"}</p></div><button onclick="showDueNotifications()">Lihat Detail →</button></section>
  <section class="umma-card umma-transactions-card"><div class="umma-card-heading"><h2>Transaksi Terbaru</h2><button class="umma-link" onclick="openAllTransactions()">Lihat Semua ›</button></div>${recentTransactions()}</section></div>`;
 }
 function totalFundsPage(){const bankItems=db.banks.map((b,i)=>({b,i})).filter(x=>!isCashAccount(x.b));const cashItems=db.banks.map((b,i)=>({b,i})).filter(x=>isCashAccount(x.b));const active=saldoBank()+saldoCash(),savings=db.savings.reduce((sum,item,i)=>sum+savingBalance(i),0),all=totalWealth();const walletRows=(items)=>items.length?items.map(({b,i})=>`<div class="umma-detail-row"><span class="umma-detail-icon">${escapeHTML(walletDisplayLogo(b))}</span><span class="umma-detail-name"><b>${escapeHTML(b.name)}</b><small>${b.isPrimary?"Rekening utama":"Dompet"}</small></span><strong>${visibleMoney(bankBalance(i))}</strong><button onclick="openWalletDetails(${i})" aria-label="Atur ${escapeHTML(b.name)}">›</button></div>`).join(""):'<p class="overview-empty-note">Belum ada data.</p>';const savingRows=db.savings.length?db.savings.map((item,i)=>`<div class="umma-detail-row"><span class="umma-detail-icon">${savingIconMarkup(item.icon||"piggy-coin")}</span><span class="umma-detail-name"><b>${escapeHTML(item.name)}</b><small>Tabungan · ${item.target?"Target "+visibleMoney(item.target):"Tanpa target"}</small></span><strong>${visibleMoney(savingBalance(i))}</strong><button onclick="navigateTo('saving')" aria-label="Buka tabungan">›</button></div>`).join(""):'<p class="overview-empty-note">Belum ada tabungan.</p>';return `<div class="umma-funds-page"><button class="umma-back-link" onclick="navigateTo('overview')">‹ Kembali ke Beranda</button><div class="umma-detail-title"><h1>Total Seluruh Dana</h1><p>Rincian seluruh saldo yang kamu miliki.</p></div><section class="umma-wealth-card umma-detail-total"><div class="umma-total-label">Total Seluruh Dana <button type="button" class="umma-eye" onclick="toggleBalanceVisibility()" aria-label="${showBalances?'Sembunyikan saldo':'Tampilkan saldo'}" title="${showBalances?'Sembunyikan saldo':'Tampilkan saldo'}"><svg viewBox="0 0 24 24" aria-hidden="true">${showBalances?'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="2.8"/>':'<path d="M3 3 21 21M10.6 5.2A10.7 10.7 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.8M6.2 6.3C3.5 8.1 2 12 2 12s3.6 7 10 7c1.1 0 2.1-.2 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>'}</svg></button></div><strong class="umma-total-amount">${visibleMoney(all)}</strong><div class="umma-detail-summary"><div><small>Dana Aktif</small><b>${visibleMoney(active)}</b></div><div><small>Dana Tabungan</small><b>${visibleMoney(savings)}</b></div></div></section><section class="umma-card umma-detail-section"><div class="umma-card-heading"><h2>Rekening Bank</h2><b>${visibleMoney(saldoBank())}</b></div>${walletRows(bankItems)}</section><section class="umma-card umma-detail-section"><div class="umma-card-heading"><h2>Uang Tunai</h2><b>${visibleMoney(saldoCash())}</b></div>${walletRows(cashItems)}</section><section class="umma-card umma-detail-section"><div class="umma-card-heading"><h2>Dana Tabungan</h2><b>${visibleMoney(savings)}</b></div>${savingRows}</section></div>`}
@@ -1161,10 +1162,75 @@ function appPrompt(label,value="",{title="Ubah data",type="text",placeholder="",
 function appSelect(label,options,value=0,{title="Pilih",confirmText="Pilih"}={}){return new Promise(resolve=>{const id="modalSelect";const opts=options.map((x,i)=>`<option value="${i}" ${String(i)===String(value)?"selected":""}>${escapeHTML(x)}</option>`).join("");showModal({title,body:`<div class="modal-field"><label for="${id}">${escapeHTML(label)}</label><select id="${id}">${opts}</select></div>`,actions:[{id:"modalCancel",label:"Batal",onClick:()=>{closeModal();resolve(null)}},{id:"modalSave",label:confirmText,className:"btn primary",onClick:()=>{const el=document.getElementById(id);const v=Number(el.value);closeModal();resolve(v)}}]})})}
 function deviceClockUpdate(){const now=new Date();const dateText=now.toLocaleDateString("id-ID",{weekday:"long",day:"numeric",month:"short"});const timeText=now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit",hour12:false});document.querySelectorAll(".device-date").forEach(el=>el.textContent=dateText);document.querySelectorAll(".device-time").forEach(el=>el.textContent=timeText);updateNotificationIndicator()}
 function refreshApplication(){window.location.reload()}
-function dueDateNotificationItems(){const now=new Date();now.setHours(0,0,0,0);const limit=new Date(now);limit.setDate(limit.getDate()+2);const items=[];const dayDiff=iso=>{if(!validISODate(String(iso||"")))return null;const d=new Date(String(iso)+"T00:00:00");return Math.round((d-now)/86400000)};db.debts.forEach((d,i)=>{if(d.paid)return;const diff=dayDiff(d.due);if(diff!==null&&diff>=0&&diff<=2)items.push({name:d.name,amount:Number(d.amount)||0,due:d.due,diff,kind:"Tagihan"})});db.subscriptions.forEach((sub,i)=>{const due=String(sub.due||"").slice(0,10);if(!validISODate(due))return;const [baseY,baseM,baseD]=due.split("-").map(Number);let occurrence=null,periodKey="";const baseDate=new Date(due+"T00:00:00");if(sub.period==="Tahunan"){let candidate;if(now<=baseDate){candidate=baseDate}else{let y=now.getFullYear();candidate=new Date(y,baseM-1,Math.min(baseD,new Date(y,baseM,0).getDate()));if(candidate<now){y++;candidate=new Date(y,baseM-1,Math.min(baseD,new Date(y,baseM,0).getDate()))}}occurrence=candidate;periodKey=String(candidate.getFullYear())}else{let candidate;if(now<=baseDate){candidate=baseDate}else{let y=now.getFullYear(),m=now.getMonth();candidate=new Date(y,m,Math.min(baseD,new Date(y,m+1,0).getDate()));if(candidate<now){m++;if(m>11){m=0;y++}candidate=new Date(y,m,Math.min(baseD,new Date(y,m+1,0).getDate()))}}occurrence=candidate;periodKey=`${candidate.getFullYear()}-${String(candidate.getMonth()+1).padStart(2,"0")}`}const diff=Math.round((occurrence-now)/86400000);if(diff<0||diff>2)return;if(sub.paidPeriod===periodKey)return;items.push({name:sub.name,amount:Number(sub.amount)||0,due:localISODate(occurrence),diff,kind:"Langganan"})});return items.sort((a,b)=>a.due.localeCompare(b.due))}
-function updateNotificationIndicator(){const hasDue=dueDateNotificationItems().length>0;document.querySelectorAll(".notification-dot").forEach(dot=>dot.hidden=!hasDue);document.querySelectorAll(".notification-btn").forEach(btn=>{btn.setAttribute("aria-label",hasDue?"Ada tagihan mendekati jatuh tempo":"Notifikasi tagihan");btn.title=hasDue?"Ada tagihan jatuh tempo dalam 2 hari":"Notifikasi tagihan"})}
-function showDueNotifications(){const items=dueDateNotificationItems();const body=items.length?`<p>Tagihan berikut akan jatuh tempo dalam 2 hari ke depan:</p><div class="list">${items.map(item=>{const when=item.diff===0?"Jatuh tempo hari ini":item.diff===1?"Jatuh tempo besok":"Jatuh tempo 2 hari lagi";return `<div class="row"><div><b>${escapeHTML(item.name)}</b><small>${escapeHTML(item.kind)} · ${escapeHTML(new Date(item.due+"T00:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}))} · ${when}</small></div><b class="expense">${rupiah(item.amount)}</b></div>`}).join("")}</div>`:`<div class="empty">Tidak ada tagihan yang jatuh tempo dalam 2 hari ke depan.</div>`;showModal({title:"Notifikasi Tagihan",subtitle:"Pengingat otomatis berdasarkan tanggal perangkat",body,actions:[{id:"closeDueNotifications",label:"Tutup",className:"btn primary",onClick:closeModal}]})}
-
+function notificationDayStart(value=new Date()){const d=new Date(value);d.setHours(0,0,0,0);return d}
+function notificationDateDiff(date,now=notificationDayStart()){return Math.round((notificationDayStart(date)-now)/86400000)}
+function subscriptionOccurrenceForReminder(sub,now=notificationDayStart()){
+ const due=String(sub.due||"").slice(0,10);if(!validISODate(due))return null;
+ const [baseY,baseM,baseD]=due.split("-").map(Number),baseDate=new Date(baseY,baseM-1,baseD),annual=sub.period==="Tahunan";
+ const makeOccurrence=(year,month)=>new Date(year,month,Math.min(baseD,new Date(year,month+1,0).getDate()));
+ let occurrence;
+ if(now<baseDate)occurrence=baseDate;
+ else if(annual)occurrence=makeOccurrence(now.getFullYear(),baseM-1);
+ else occurrence=makeOccurrence(now.getFullYear(),now.getMonth());
+ if(occurrence<baseDate)occurrence=baseDate;
+ const keyFor=d=>annual?String(d.getFullYear()):`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+ let periodKey=keyFor(occurrence);
+ if(sub.paidPeriod===periodKey){
+  occurrence=annual?makeOccurrence(occurrence.getFullYear()+1,baseM-1):makeOccurrence(occurrence.getFullYear(),occurrence.getMonth()+1);
+  periodKey=keyFor(occurrence);
+ }
+ return {date:occurrence,periodKey};
+}
+function dueDateNotificationItems(){
+ const now=notificationDayStart(),items=[];
+ db.debts.forEach((d,i)=>{
+  if(!d||d.paid||!validISODate(String(d.due||"")))return;
+  const diff=notificationDateDiff(new Date(String(d.due)+"T00:00:00"),now);
+  if(diff>7)return;
+  items.push({id:"debt:"+(d.id||stableObligationId("debt",d,i)),name:d.name,amount:Number(d.amount)||0,due:String(d.due).slice(0,10),diff,kind:"Tagihan / Cicilan",status:diff<0?"overdue":diff===0?"today":"upcoming"});
+ });
+ db.subscriptions.forEach((sub,i)=>{
+  if(!sub)return;const occurrence=subscriptionOccurrenceForReminder(sub,now);if(!occurrence)return;
+  const paymentId="subscription-payment-"+(sub.id||stableObligationId("sub",sub,i))+"-"+occurrence.periodKey;
+  const legacyPaymentId="subscription-payment-"+i+"-"+occurrence.periodKey;
+  const paid=sub.paidPeriod===occurrence.periodKey||db.transactions.some(t=>t.type==="expense"&&(t.obligationPaymentId===paymentId||t.obligationPaymentId===legacyPaymentId));
+  if(paid)return;
+  const due=localISODate(occurrence.date),diff=notificationDateDiff(occurrence.date,now);if(diff>7)return;
+  items.push({id:"sub:"+(sub.id||stableObligationId("sub",sub,i))+":"+occurrence.periodKey,name:sub.name,amount:Number(sub.amount)||0,due,diff,kind:"Langganan",status:diff<0?"overdue":diff===0?"today":"upcoming"});
+ });
+ const unique=new Map();items.forEach(item=>unique.set(item.id,item));
+ return [...unique.values()].sort((a,b)=>a.due.localeCompare(b.due)||a.name.localeCompare(b.name));
+}
+function budgetNotificationItems(){
+ const range=currentBudgetRange(),periodKey=range.mode==="paycycle"?range.start:range.start.slice(0,7),plan=db.allocations.find(x=>x.month===periodKey);
+ if(!plan||!Array.isArray(plan.items)||!plan.items.length)return [];
+ const groupNames={wajib:"Kewajiban",pokok:"Kebutuhan Pokok",tabungan:"Tabungan & Tujuan",cadangan:"Dana Cadangan",pribadi:"Keinginan & Gaya Hidup"};
+ const seen=new Set(),items=[];
+ plan.items.forEach((item,index)=>{
+  const budget=Math.max(0,Number(item.amount)||0);if(!budget)return;
+  const spent=Math.max(0,Number(allocationSpent(item,range))||0),remaining=budget-spent;
+  let status="",title="";
+  if(spent>budget){status="over";title="Pengeluaran melebihi anggaran"}
+  else if(remaining<=0){status="empty";title="Dana sudah habis"}
+  else if(remaining/budget<=.2){status="near";title="Dana hampir habis"}
+  else return;
+  const group=String(item.expenseCategory||"").match(/^__group_(wajib|pokok|tabungan|pribadi|cadangan)__$/)?.[1];
+  const name=group?groupNames[group]:(item.name||item.expenseCategory||"Kategori");
+  const id=String(item.id||item.expenseCategory||item.name||index),key=periodKey+":"+id+":"+status;
+  if(seen.has(key))return;seen.add(key);
+  items.push({id:key,name,amount:budget,spent,remaining,status,title,kind:"Anggaran",period:budgetCycleLabel(range)});
+ });
+ return items;
+}
+function allNotificationItems(){return [...budgetNotificationItems(),...dueDateNotificationItems()]}
+function updateNotificationIndicator(){const hasNotifications=allNotificationItems().length>0;document.querySelectorAll(".notification-dot").forEach(dot=>dot.hidden=!hasNotifications);document.querySelectorAll(".notification-btn").forEach(btn=>{btn.setAttribute("aria-label",hasNotifications?"Ada notifikasi anggaran atau kewajiban":"Tidak ada notifikasi baru");btn.title=hasNotifications?"Lihat notifikasi anggaran dan kewajiban":"Notifikasi"})}
+function showDueNotifications(){
+ const budgetItems=budgetNotificationItems(),dueItems=dueDateNotificationItems();
+ const budgetBody=budgetItems.length?`<div class="notification-section"><h4>Alokasi Anggaran</h4><div class="list">${budgetItems.map(item=>{const detail=item.status==="over"?`Melebihi ${rupiah(Math.abs(item.remaining))}`:`Sisa ${rupiah(Math.max(0,item.remaining))}`;return `<div class="row"><div><b>${escapeHTML(item.title)} · ${escapeHTML(item.name)}</b><small>${escapeHTML(item.period)} · Terpakai ${rupiah(item.spent)} dari ${rupiah(item.amount)}</small></div><b class="${item.status==="over"?"expense":""}">${detail}</b></div>`}).join("")}</div></div>`:"";
+ const dueBody=dueItems.length?`<div class="notification-section"><h4>Tagihan, Cicilan & Langganan</h4><div class="list">${dueItems.map(item=>{const when=item.diff<0?`Terlambat ${Math.abs(item.diff)} hari`:item.diff===0?"Jatuh tempo hari ini":`Jatuh tempo ${item.diff} hari lagi`;return `<div class="row"><div><b>${escapeHTML(item.name)}</b><small>${escapeHTML(item.kind)} · ${escapeHTML(new Date(item.due+"T00:00:00").toLocaleDateString("id-ID",{day:"numeric",month:"long",year:"numeric"}))} · ${when}</small></div><b class="expense">${rupiah(item.amount)}</b></div>`}).join("")}</div></div>`:"";
+ const body=budgetBody+dueBody||'<div class="empty">Belum ada notifikasi anggaran atau kewajiban.</div>';
+ showModal({title:"Notifikasi",subtitle:"Status anggaran dan pengingat kewajiban diperbarui otomatis",body,actions:[{id:"closeDueNotifications",label:"Tutup",className:"btn primary",onClick:closeModal}]});
+}
 let allocationMonth=new Date().getMonth();
 let allocationYear=new Date().getFullYear();
 if(db.allocationSettings?.mode==="paycycle") {const now=new Date(),payDay=Math.min(31,Math.max(1,Number(db.allocationSettings.payDay)||25));if(now.getDate()<payDay){const activeStart=new Date(now.getFullYear(),now.getMonth()-1,1);allocationMonth=activeStart.getMonth();allocationYear=activeStart.getFullYear();dashboardMonth=allocationMonth;dashboardYear=allocationYear;}}
